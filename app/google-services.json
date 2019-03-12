@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "224874326802",
+    "firebase_url": "https://chrissetiana-chat-app.firebaseio.com",
+    "project_id": "chrissetiana-chat-app",
+    "storage_bucket": "chrissetiana-chat-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:224874326802:android:e5d533c46c86f056",
+        "android_client_info": {
+          "package_name": "com.chrissetiana.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "224874326802-eopopug1890g39h549hba4ca0oman08f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chrissetiana.chatapp",
+            "certificate_hash": "59b8955b737fb1b1a1ca145229d1c667c2d17842"
+          }
+        },
+        {
+          "client_id": "224874326802-v3m4co44gimi3sfnrteiaogk70gadv0l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDIBToJ7bovLwVvhVIBqWT5fxLOEBUbKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "224874326802-v3m4co44gimi3sfnrteiaogk70gadv0l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
