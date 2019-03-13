@@ -14,7 +14,15 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,39 +32,48 @@ public class MainActivity extends AppCompatActivity {
     public static final String ANONYMOUS = "anonymous";
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final String TAG = "MainActivity";
-    private ListView mMessageListView;
-    private MessageAdapter mMessageAdapter;
-    private ProgressBar mProgressBar;
-    private ImageButton mPhotoPickerButton;
-    private EditText mMessageEditText;
-    private Button mSendButton;
+    private ListView messageListView;
+    private MessageAdapter messageAdapter;
+    private ProgressBar progressBar;
+    private ImageButton photoPickerButton;
+    private EditText messageEditText;
+    private Button sendButton;
+    private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
+    private ChildEventListener eventListener;
 
-    private String mUsername;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mUsername = ANONYMOUS;
+        username = ANONYMOUS;
+
+        // Initialize database
+        database = FirebaseDatabase.getInstance();
+
+        // Create database node child
+        databaseReference = database.getReference().child("messages");
 
         // Initialize references to views
-        mProgressBar = findViewById(R.id.progressBar);
-        mMessageListView = findViewById(R.id.messageListView);
-        mPhotoPickerButton = findViewById(R.id.photoPickerButton);
-        mMessageEditText = findViewById(R.id.messageEditText);
-        mSendButton = findViewById(R.id.sendButton);
+        progressBar = findViewById(R.id.progressBar);
+        messageListView = findViewById(R.id.messageListView);
+        photoPickerButton = findViewById(R.id.photoPickerButton);
+        messageEditText = findViewById(R.id.messageEditText);
+        sendButton = findViewById(R.id.sendButton);
 
         // Initialize message ListView and its adapter
         List<ChatMessage> chatMessages = new ArrayList<>();
-        mMessageAdapter = new MessageAdapter(this, R.layout.item_message, chatMessages);
-        mMessageListView.setAdapter(mMessageAdapter);
+        messageAdapter = new MessageAdapter(this, R.layout.item_message, chatMessages);
+        messageListView.setAdapter(messageAdapter);
 
         // Initialize progress bar
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
 
         // ImagePickerButton shows an image picker to upload a image for a message
-        mPhotoPickerButton.setOnClickListener(new View.OnClickListener() {
+        photoPickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // TODO: Fire an intent to show an image picker
@@ -64,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Enable Send button when there's text to send
-        mMessageEditText.addTextChangedListener(new TextWatcher() {
+        messageEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
@@ -72,9 +89,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (charSequence.toString().trim().length() > 0) {
-                    mSendButton.setEnabled(true);
+                    sendButton.setEnabled(true);
                 } else {
-                    mSendButton.setEnabled(false);
+                    sendButton.setEnabled(false);
                 }
             }
 
@@ -82,18 +99,51 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
             }
         });
-        mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(DEFAULT_MSG_LENGTH_LIMIT)});
+        messageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(DEFAULT_MSG_LENGTH_LIMIT)});
 
         // Send button sends a message and clears the EditText
-        mSendButton.setOnClickListener(new View.OnClickListener() {
+        sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Send messages on click
+                ChatMessage chatMessage = new ChatMessage(messageEditText.getText().toString(), username, null);
+
+                databaseReference.push().setValue(chatMessage);
 
                 // Clear input box
-                mMessageEditText.setText("");
+                messageEditText.setText("");
             }
         });
+
+        // Event listener will listen to changes made on the node child
+        eventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
+                messageAdapter.add(chatMessage);
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+
+        databaseReference.addChildEventListener(eventListener);
     }
 
     @Override
