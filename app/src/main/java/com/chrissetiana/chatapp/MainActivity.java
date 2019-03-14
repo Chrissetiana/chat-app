@@ -13,7 +13,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -124,37 +123,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Event listener will listen to changes made on the node child
-        eventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
-                messageAdapter.add(chatMessage);
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-
-        databaseReference.addChildEventListener(eventListener);
-
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -162,9 +130,10 @@ public class MainActivity extends AppCompatActivity {
 
                 if (user != null) {
                     // user is signed in
-                    Toast.makeText(MainActivity.this, "Welcome to Chat App", Toast.LENGTH_SHORT).show();
+                    onSignedInInitialize(user.getDisplayName());
                 } else {
                     // user is signed out
+                    onSignedOutCleanup();
                     startActivityForResult(
                             // Get an instance of AuthUI based on the default app
                             AuthUI.getInstance()
@@ -177,6 +146,59 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+    }
+
+    private void onSignedInInitialize(String user) {
+        username = user;
+        attachDatabaseReadListener();
+    }
+
+    private void onSignedOutCleanup() {
+        username = ANONYMOUS;
+        messageAdapter.clear();
+        detachDatabaseReadListener();
+    }
+
+    private void attachDatabaseReadListener() {
+        // Event listener will listen to changes made on the node child
+        if (eventListener == null) {
+            eventListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                    ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
+                    messageAdapter.add(chatMessage);
+                }
+
+                @Override
+                public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            };
+
+            databaseReference.addChildEventListener(eventListener);
+        }
+    }
+
+    private void detachDatabaseReadListener() {
+        if (eventListener != null) {
+            databaseReference.removeEventListener(eventListener);
+            eventListener = null;
+        }
     }
 
     @Override
@@ -200,6 +222,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        firebaseAuth.removeAuthStateListener(authStateListener);
+
+        if (authStateListener != null) {
+            firebaseAuth.removeAuthStateListener(authStateListener);
+        }
+
+        detachDatabaseReadListener();
+        messageAdapter.clear();
     }
 }
