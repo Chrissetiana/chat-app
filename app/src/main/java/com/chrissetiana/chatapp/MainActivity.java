@@ -1,6 +1,7 @@
 package com.chrissetiana.chatapp;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -28,6 +29,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +39,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final int RC_SIGN_IN = 1;
+    public static final int RC_PHOTO_PICKER = 2;
     public static final String ANONYMOUS = "anonymous";
     public static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final String TAG = "MainActivity";
@@ -50,7 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private ChildEventListener eventListener;
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
-
+    private FirebaseStorage firebaseStorage;
+    private StorageReference storageReference;
 
     private String username;
 
@@ -64,9 +69,11 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database
         firebaseDatabase = FirebaseDatabase.getInstance();
         firebaseAuth = FirebaseAuth.getInstance();
+        firebaseStorage = FirebaseStorage.getInstance();
 
         // Create database node child
         databaseReference = firebaseDatabase.getReference().child("messages");
+        storageReference = firebaseStorage.getReference().child("chat_photos");
 
         // Initialize references to views
         progressBar = findViewById(R.id.progressBar);
@@ -87,7 +94,10 @@ public class MainActivity extends AppCompatActivity {
         photoPickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Fire an intent to show an image picker
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/jpeg");
+                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
             }
         });
 
@@ -231,6 +241,11 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "SIGN-IN CANCELLED", Toast.LENGTH_SHORT).show();
                 finish();
+            }
+        } else if (requestCode == RC_PHOTO_PICKER) {
+            if (resultCode == RESULT_OK) {
+                Uri selectedImage = data.getData();
+                StorageReference photoRef = storageReference.child(selectedImage.getLastPathSegment());
             }
         }
     }
