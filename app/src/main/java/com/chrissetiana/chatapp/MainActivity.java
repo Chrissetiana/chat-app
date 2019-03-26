@@ -253,7 +253,8 @@ public class MainActivity extends AppCompatActivity {
                 photoRef.putFile(selectedImage).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        Uri downloadUri = taskSnapshot.getDownloadUrl();
+//                        Uri downloadUri = taskSnapshot.getDownloadUrl();
+                        Uri downloadUri = Uri.parse("https://chrissetiana.github.io");
                         ChatMessage chatMessage = new ChatMessage(null, username, downloadUri.toString());
                         databaseReference.push().setValue(chatMessage);
                     }
