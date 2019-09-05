@@ -213,16 +213,19 @@ public class MainActivity extends AppCompatActivity {
     private void applyLengthLimit() {
         Long chat_limit = firebaseConfig.getLong(CHAT_MESSAGE_LENGTH);
         messageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(chat_limit.intValue())});
+
         Log.d(TAG, CHAT_MESSAGE_LENGTH + " = " + chat_limit);
     }
 
     private void onSignedInInitialize(String user) {
         username = user;
+
         attachDatabaseReadListener();
     }
 
     private void onSignedOutCleanup() {
         username = ANONYMOUS;
+
         messageAdapter.clear();
         detachDatabaseReadListener();
     }
@@ -273,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+
         return true;
     }
 
